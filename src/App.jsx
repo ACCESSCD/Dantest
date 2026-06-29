@@ -1,69 +1,70 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import * as XLSX from 'xlsx'
-import { UploadCloud, AlertCircle, FileSpreadsheet } from 'lucide-react'
+import { UploadCloud, AlertCircle, FileSpreadsheet, RefreshCw } from 'lucide-react'
 import './index.css'
 
 function App() {
   const [flaggedResidents, setFlaggedResidents] = useState(null)
   const [fileName, setFileName] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
 
+  // Auto-load data on component mount
+  useEffect(() => {
+    fetch('./data.json')
+      .then(res => {
+        if (!res.ok) throw new Error("No data.json found");
+        return res.json();
+      })
+      .then(data => {
+        // The python script already processed the data!
+        setFlaggedResidents(data);
+        setIsLoading(false);
+      })
+      .catch(err => {
+        console.log("No automated data found. Falling back to manual upload mode.");
+        setIsLoading(false);
+      });
+  }, []);
+
+  // Manual fallback logic
   const processData = (data) => {
     const flagged = []
     const cutoffDate = new Date('2026-05-01T00:00:00')
     
     data.forEach(row => {
-      // Find the timestamp key (could be 'Timestamp' or 'חותמת זמן' depending on form language)
-      const tsKey = Object.keys(row).find(k => 
-        k.trim().toLowerCase() === 'timestamp' || 
-        k.trim() === 'חותמת זמן'
-      )
-      
+      const tsKey = Object.keys(row).find(k => k.trim().toLowerCase() === 'timestamp' || k.trim() === 'חותמת זמן')
       let isValidDateAndRecent = false;
       
       if (tsKey && row[tsKey]) {
         let rowDate = new Date(row[tsKey]);
-        
-        // If JS fails to parse the string (e.g. DD/MM/YYYY format), try a manual fallback
         if (isNaN(rowDate.getTime()) && typeof row[tsKey] === 'string') {
-          // split by slash, dash, or space
           const parts = row[tsKey].split(/[\/\-\s]/); 
           if (parts.length >= 3) {
-            // Assume DD/MM/YYYY or similar if invalid. Let's try to reconstruct YYYY-MM-DD
-            // If parts[2] is a year (length 4)
             if (parts[2].length === 4) {
               rowDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`);
             }
           }
         }
-        
-        // If it's a valid date, check if it's strictly >= May 1st 2026
         if (!isNaN(rowDate.getTime()) && rowDate >= cutoffDate) {
           isValidDateAndRecent = true;
         }
       }
 
-      // If we couldn't find a valid date, or if it's before the cutoff, skip this row entirely!
       if (!isValidDateAndRecent) {
         return; 
       }
 
-      // Find the key that corresponds to 'ידע תיאורטי' (Theoretical Knowledge)
       const targetKey = Object.keys(row).find(k => k.trim() === 'ידע תיאורטי')
-      
       if (targetKey) {
         const score = row[targetKey]
-        
-        // Check if score is a valid number and <= 3
         if (score !== undefined && score !== null && !isNaN(score) && Number(score) <= 3) {
-          
-          // Format the date for display
           let displayDate = 'Unknown Date';
           if (tsKey && row[tsKey]) {
             const rawDate = new Date(row[tsKey]);
             if (!isNaN(rawDate.getTime())) {
               displayDate = rawDate.toLocaleDateString();
             } else if (typeof row[tsKey] === 'string') {
-              displayDate = row[tsKey].split(' ')[0]; // fallback to just the string part
+              displayDate = row[tsKey].split(' ')[0];
             }
           }
 
@@ -108,31 +109,43 @@ function App() {
     e.preventDefault();
   }
 
+  if (isLoading) {
+    return (
+      <div className="dashboard-container" style={{ alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <RefreshCw size={48} className="upload-icon-wrapper" style={{ animation: 'spin 1s linear infinite' }} />
+        <h2>Loading your automated data...</h2>
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-container">
       <header className="header">
         <h1>Resident Evaluation Dashboard</h1>
-        <p>Upload your evaluation responses to immediately flag scores of 3 or below in Theoretical Knowledge.</p>
+        <p>Your dashboard automatically flags scores of 3 or below in Theoretical Knowledge.</p>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Strictly showing evaluations from May 1st, 2026 onwards.</p>
       </header>
 
-      <div 
-        className="upload-card"
-        onDrop={onDrop}
-        onDragOver={onDragOver}
-      >
-        <div className="upload-icon-wrapper">
-          <UploadCloud size={48} />
+      {/* Only show upload card if automated data failed or wasn't found */}
+      {!flaggedResidents && (
+        <div 
+          className="upload-card"
+          onDrop={onDrop}
+          onDragOver={onDragOver}
+        >
+          <div className="upload-icon-wrapper">
+            <UploadCloud size={48} />
+          </div>
+          <h2>Upload Data</h2>
+          <p>Drag and drop your Excel (.xlsx) file here</p>
+          <p className="or-text">or</p>
+          <label className="upload-btn">
+            Browse Files
+            <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
+          </label>
+          {fileName && <div className="file-name"><FileSpreadsheet size={16}/> {fileName}</div>}
         </div>
-        <h2>Upload Data</h2>
-        <p>Drag and drop your Excel (.xlsx) file here</p>
-        <p className="or-text">or</p>
-        <label className="upload-btn">
-          Browse Files
-          <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
-        </label>
-        {fileName && <div className="file-name"><FileSpreadsheet size={16}/> {fileName}</div>}
-      </div>
+      )}
 
       {flaggedResidents && (
         <div className="results-container">
