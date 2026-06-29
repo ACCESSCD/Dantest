@@ -27,8 +27,8 @@ function App() {
       if (targetKey) {
         const score = row[targetKey]
         
-        // Check if score is a valid number and <= 2
-        if (score !== undefined && score !== null && !isNaN(score) && Number(score) <= 2) {
+        // Check if score is a valid number and <= 3
+        if (score !== undefined && score !== null && !isNaN(score) && Number(score) <= 3) {
           flagged.push({
             name: row['שם המתמחה'] || 'Unknown',
             score: Number(score),
@@ -74,7 +74,7 @@ function App() {
     <div className="dashboard-container">
       <header className="header">
         <h1>Resident Evaluation Dashboard</h1>
-        <p>Upload your evaluation responses to immediately flag scores of 2 or below in Theoretical Knowledge.</p>
+        <p>Upload your evaluation responses to immediately flag scores of 3 or below in Theoretical Knowledge.</p>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Only showing evaluations from May 1st, 2026 onwards.</p>
       </header>
 
@@ -105,7 +105,7 @@ function App() {
           
           {flaggedResidents.length === 0 ? (
             <div className="no-flags">
-              <p>Great news! No residents scored 2 or below in Theoretical Knowledge (since May 1st, 2026).</p>
+              <p>Great news! No residents scored 3 or below in Theoretical Knowledge (since May 1st, 2026).</p>
             </div>
           ) : (
             <ul className="resident-list">
