@@ -26,13 +26,15 @@ function App() {
   }, []);
 
   const processData = (data) => {
-    const flagged = []
     const cutoffDate = new Date('2026-05-01T00:00:00')
     const negativeWords = ['ידע', 'עדיין', 'ללמוד', 'צריך', 'יותר']
+    const residentEvals = {}
     
+    // Pass 1: Extract all evaluations where score <= 2
     data.forEach(row => {
       const tsKey = Object.keys(row).find(k => k.trim().toLowerCase() === 'timestamp' || k.trim() === 'חותמת זמן')
       let isValidDateAndRecent = false;
+      let parsedDate = null;
       
       if (tsKey && row[tsKey]) {
         let rowDate = new Date(row[tsKey]);
@@ -46,29 +48,23 @@ function App() {
         }
         if (!isNaN(rowDate.getTime()) && rowDate >= cutoffDate) {
           isValidDateAndRecent = true;
+          parsedDate = rowDate;
         }
       }
 
       if (!isValidDateAndRecent) return; 
 
       const targetKey = Object.keys(row).find(k => k.trim() === 'ידע תיאורטי')
-      const textKey = Object.keys(row).find(k => k.trim() === 'הערכה מילולית')
-      
       const score = targetKey ? row[targetKey] : null
-      const textVal = textKey && row[textKey] ? String(row[textKey]) : ''
-      
-      // Find words ignoring punctuation
-      const cleanText = textVal.replace(/[^\w\sא-ת]/g, '')
-      const wordsInText = cleanText.split(/\s+/)
-      const foundWords = negativeWords.filter(w => wordsInText.includes(w))
-      
-      let isFlagged = false;
       
       if (score !== undefined && score !== null && !isNaN(score) && Number(score) <= 2) {
-        isFlagged = true;
-      }
-
-      if (isFlagged) {
+        const textKey = Object.keys(row).find(k => k.trim() === 'הערכה מילולית')
+        const textVal = textKey && row[textKey] ? String(row[textKey]) : ''
+        
+        const cleanText = textVal.replace(/[^\w\sא-ת]/g, '')
+        const wordsInText = cleanText.split(/\s+/)
+        const foundWords = negativeWords.filter(w => wordsInText.includes(w))
+        
         let displayDate = 'Unknown Date';
         if (tsKey && row[tsKey]) {
           const rawDate = new Date(row[tsKey]);
@@ -79,15 +75,47 @@ function App() {
           }
         }
 
-        flagged.push({
-          name: row['שם המתמחה'] || 'Unknown',
-          score: score !== null && !isNaN(score) ? Number(score) : 'N/A',
+        const name = row['שם המתמחה'] || 'Unknown'
+        
+        if (!residentEvals[name]) {
+          residentEvals[name] = []
+        }
+        
+        residentEvals[name].push({
+          parsedDate: parsedDate,
+          name: name,
+          score: Number(score),
           flagged_words: foundWords,
           full_text: textVal,
           date: displayDate,
           evaluator: row['שם המעריך'] || 'Unknown'
         })
       }
+    })
+    
+    const flagged = []
+    
+    // Pass 2: Filter for 2 or more occurrences within 14 days
+    Object.keys(residentEvals).forEach(name => {
+      const evals = residentEvals[name]
+      evals.sort((a, b) => a.parsedDate - b.parsedDate)
+      
+      const validIndices = new Set()
+      
+      for (let i = 0; i < evals.length; i++) {
+        for (let j = i + 1; j < evals.length; j++) {
+          const diffDays = (evals[j].parsedDate - evals[i].parsedDate) / (1000 * 60 * 60 * 24)
+          if (diffDays <= 14) {
+            validIndices.add(i)
+            validIndices.add(j)
+          }
+        }
+      }
+      
+      const sortedIndices = Array.from(validIndices).sort((a,b) => a - b)
+      sortedIndices.forEach(idx => {
+        flagged.push(evals[idx])
+      })
     })
     
     setFlaggedResidents(flagged)
@@ -134,7 +162,7 @@ function App() {
     <div className="dashboard-container">
       <header className="header">
         <h1>Resident Evaluation Dashboard</h1>
-        <p>Flags residents with Theoretical Knowledge ≤ 2. Evaluator keywords are shown for context.</p>
+        <p>Flags residents with <strong>two or more</strong> scores ≤ 2 in Theoretical Knowledge within a <strong>14-day window</strong>.</p>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Strictly showing evaluations from May 1st, 2026 onwards.</p>
       </header>
 
@@ -161,13 +189,13 @@ function App() {
       {flaggedResidents && (
         <div className="results-container">
           <div className="results-header">
-            <h2><AlertCircle size={24}/> Flagged Residents</h2>
-            <span className="badge">{flaggedResidents.length} found</span>
+            <h2><AlertCircle size={24}/> Repeated Low Scores (14-Day Window)</h2>
+            <span className="badge">{flaggedResidents.length} evaluations found</span>
           </div>
           
           {flaggedResidents.length === 0 ? (
             <div className="no-flags">
-              <p>Great news! No residents met the flagging criteria (since May 1st, 2026).</p>
+              <p>Great news! No residents received multiple low scores within a 2-week period (since May 1st, 2026).</p>
             </div>
           ) : (
             <div className="table-responsive">
