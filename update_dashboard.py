@@ -29,10 +29,10 @@ for index, row in df.iterrows():
     except Exception as e:
         continue
         
-    # Find the theoretical knowledge column
+    # Find the manual skills column
     score_col = None
     for col in df.columns:
-        if 'ידע תיאורטי' in str(col):
+        if 'מיומנות מנואלית' in str(col):
             score_col = col
             break
             

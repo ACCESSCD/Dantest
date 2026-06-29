@@ -54,7 +54,8 @@ function App() {
         return; 
       }
 
-      const targetKey = Object.keys(row).find(k => k.trim() === 'ידע תיאורטי')
+      // Find the key that corresponds to 'מיומנות מנואלית' (Manual Skills)
+      const targetKey = Object.keys(row).find(k => k.trim() === 'מיומנות מנואלית')
       if (targetKey) {
         const score = row[targetKey]
         // Check if score is a valid number and <= 2
@@ -123,7 +124,7 @@ function App() {
     <div className="dashboard-container">
       <header className="header">
         <h1>Resident Evaluation Dashboard</h1>
-        <p>Your dashboard automatically flags scores of 2 or below in Theoretical Knowledge.</p>
+        <p>Your dashboard automatically flags scores of 2 or below in Manual Skills.</p>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Strictly showing evaluations from May 1st, 2026 onwards.</p>
       </header>
 
@@ -157,7 +158,7 @@ function App() {
           
           {flaggedResidents.length === 0 ? (
             <div className="no-flags">
-              <p>Great news! No residents scored 2 or below in Theoretical Knowledge (since May 1st, 2026).</p>
+              <p>Great news! No residents scored 2 or below in Manual Skills (since May 1st, 2026).</p>
             </div>
           ) : (
             <ul className="resident-list">
