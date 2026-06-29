@@ -51,7 +51,7 @@ function App() {
 
       if (!isValidDateAndRecent) return; 
 
-      const targetKey = Object.keys(row).find(k => k.trim() === 'מיומנות מנואלית')
+      const targetKey = Object.keys(row).find(k => k.trim() === 'ידע תיאורטי')
       const textKey = Object.keys(row).find(k => k.trim() === 'הערכה מילולית')
       
       const score = targetKey ? row[targetKey] : null
@@ -137,7 +137,7 @@ function App() {
     <div className="dashboard-container">
       <header className="header">
         <h1>Resident Evaluation Dashboard</h1>
-        <p>Flags residents with Manual Skills ≤ 2 OR concerning keywords in verbal evaluation.</p>
+        <p>Flags residents with Theoretical Knowledge ≤ 2 OR concerning keywords in verbal evaluation.</p>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Strictly showing evaluations from May 1st, 2026 onwards.</p>
       </header>
 
@@ -178,7 +178,7 @@ function App() {
                 <thead>
                   <tr>
                     <th>Resident</th>
-                    <th>Manual Skills Score</th>
+                    <th>Theoretical Knowledge Score</th>
                     <th>Flagged Keywords</th>
                   </tr>
                 </thead>
