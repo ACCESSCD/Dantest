@@ -67,9 +67,6 @@ function App() {
       if (score !== undefined && score !== null && !isNaN(score) && Number(score) <= 2) {
         isFlagged = true;
       }
-      if (foundWords.length > 0) {
-        isFlagged = true;
-      }
 
       if (isFlagged) {
         let displayDate = 'Unknown Date';
@@ -137,7 +134,7 @@ function App() {
     <div className="dashboard-container">
       <header className="header">
         <h1>Resident Evaluation Dashboard</h1>
-        <p>Flags residents with Theoretical Knowledge ≤ 2 OR concerning keywords in verbal evaluation.</p>
+        <p>Flags residents with Theoretical Knowledge ≤ 2. Evaluator keywords are shown for context.</p>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Strictly showing evaluations from May 1st, 2026 onwards.</p>
       </header>
 

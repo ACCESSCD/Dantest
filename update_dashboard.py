@@ -51,16 +51,9 @@ for index, row in df.iterrows():
     words_in_text = clean_text.split()
     found_words = list(set([w for w in negative_words if w in words_in_text]))
     
+    # Condition: ONLY flag if Score <= 2
     is_flagged = False
-    
-    # Condition 1: Score <= 2
-    is_score_flagged = False
     if pd.notna(score) and isinstance(score, (int, float)) and score <= 2:
-        is_score_flagged = True
-        is_flagged = True
-        
-    # Condition 2: Negative words found
-    if len(found_words) > 0:
         is_flagged = True
         
     if is_flagged:
