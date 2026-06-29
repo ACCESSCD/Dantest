@@ -10,7 +10,7 @@ function App() {
 
   // Auto-load data on component mount
   useEffect(() => {
-    fetch('./data.json')
+    fetch('./data.json?t=' + new Date().getTime())
       .then(res => {
         if (!res.ok) throw new Error("No data.json found");
         return res.json();
