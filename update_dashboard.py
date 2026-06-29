@@ -41,8 +41,8 @@ for index, row in df.iterrows():
         
     score = row[score_col]
     
-    # Check if score <= 3
-    if pd.notna(score) and isinstance(score, (int, float)) and score <= 3:
+    # Check if score <= 2
+    if pd.notna(score) and isinstance(score, (int, float)) and score <= 2:
         name = row.get('שם המתמחה', 'Unknown')
         evaluator = row.get('שם המעריך', 'Unknown')
         

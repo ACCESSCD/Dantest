@@ -57,7 +57,8 @@ function App() {
       const targetKey = Object.keys(row).find(k => k.trim() === 'ידע תיאורטי')
       if (targetKey) {
         const score = row[targetKey]
-        if (score !== undefined && score !== null && !isNaN(score) && Number(score) <= 3) {
+        // Check if score is a valid number and <= 2
+        if (score !== undefined && score !== null && !isNaN(score) && Number(score) <= 2) {
           let displayDate = 'Unknown Date';
           if (tsKey && row[tsKey]) {
             const rawDate = new Date(row[tsKey]);
@@ -122,7 +123,7 @@ function App() {
     <div className="dashboard-container">
       <header className="header">
         <h1>Resident Evaluation Dashboard</h1>
-        <p>Your dashboard automatically flags scores of 3 or below in Theoretical Knowledge.</p>
+        <p>Your dashboard automatically flags scores of 2 or below in Theoretical Knowledge.</p>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Strictly showing evaluations from May 1st, 2026 onwards.</p>
       </header>
 
@@ -156,7 +157,7 @@ function App() {
           
           {flaggedResidents.length === 0 ? (
             <div className="no-flags">
-              <p>Great news! No residents scored 3 or below in Theoretical Knowledge (since May 1st, 2026).</p>
+              <p>Great news! No residents scored 2 or below in Theoretical Knowledge (since May 1st, 2026).</p>
             </div>
           ) : (
             <ul className="resident-list">
