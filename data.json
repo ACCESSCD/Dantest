@@ -31,7 +31,7 @@
   },
   {
     "name": "ד\"ר זיו כהן",
-    "score": 3.0,
+    "score": 5.0,
     "flagged_words": [
       "עדיין"
     ],
@@ -41,13 +41,21 @@
   },
   {
     "name": "ד\"ר איתן קרויזר",
-    "score": 3.0,
+    "score": 5.0,
     "flagged_words": [
       "יותר"
     ],
     "full_text": "יום 3 לרוטציית בלוקים, התחיל לנהל ולבצע אותם באופן יותר עצמאי, ואפילו במטופלים קשים הצליח לבצעם כראוי. חוץ מזה עובד לבד לגמרי ללא צורך בתיקונים משמעותיים",
     "date": "2026-05-05",
     "evaluator": "ד\"ר דן ארד"
+  },
+  {
+    "name": "ד\"ר אופיר צברי",
+    "score": 2.0,
+    "flagged_words": [],
+    "full_text": "הגיע אחריי למיטת המטופל בבוקר, אז לא הציג- כי לא בדק, הגיע בלי סטטוסקופ, למה? במהלך ניפוח הבטן בלפרוסקופיה לא מתמקד בשדה הניתוחי או במוניטור וניגש להקליד במחשב",
+    "date": "2026-05-05",
+    "evaluator": "ד\"ר יותם וייס"
   },
   {
     "name": "ד\"ר מתן זכריה",
@@ -71,7 +79,7 @@
   },
   {
     "name": "ד\"ר איתן קרויזר",
-    "score": 4.0,
+    "score": 5.0,
     "flagged_words": [
       "ידע"
     ],
@@ -80,16 +88,8 @@
     "evaluator": "ד\"ר דן ארד"
   },
   {
-    "name": "ד\"ר אלעד פרוביזור",
-    "score": 2.0,
-    "flagged_words": [],
-    "full_text": "מעט חסר בטחון ",
-    "date": "2026-05-10",
-    "evaluator": "ד\"ר אורי כרמי"
-  },
-  {
     "name": "ד\"ר עדי קרס",
-    "score": 1.0,
+    "score": 2.0,
     "flagged_words": [],
     "full_text": "This is what I told her today. She has no awareness and v poor manual dexterityAdi happy to chat with you tomorrow if you have time...about today The propofool doses without a secured airway  The options in that case and the charting   Also about the epidural...I was thinking about the process and how you handed me the syringe with LA in to give through the needle.   Also of course the cleaning...no alcohol solution anywhere near the equipment...do you know why? ",
     "date": "2026-05-10",
@@ -97,7 +97,7 @@
   },
   {
     "name": "ד\"ר מתן זכריה",
-    "score": 4.0,
+    "score": 3.0,
     "flagged_words": [
       "יותר"
     ],
@@ -107,10 +107,10 @@
   },
   {
     "name": "ד\"ר דור בראמי",
-    "score": 4.0,
+    "score": 3.0,
     "flagged_words": [
-      "ידע",
       "ללמוד",
+      "ידע",
       "יותר"
     ],
     "full_text": "דור מתמחה נחמד מצחיק ונעים לצוות ולמטופלים יש ידע ורצון ללמוד אבל נוטה להיות שטותניק ולא לקחת דברים ברצינותמירבית. פתח לטעויות . דרוש להיות יותר מרוכז ומפוקס בעבודה .בסהכ יש פוטנציאל טוב להיות רופא מומחה טוב בעתיד",
@@ -119,7 +119,7 @@
   },
   {
     "name": "ד\"ר רועי שמעונוביץ",
-    "score": 3.0,
+    "score": 4.0,
     "flagged_words": [
       "ידע"
     ],
@@ -138,8 +138,16 @@
     "evaluator": "ד\"ר יבגני איזראיטל"
   },
   {
+    "name": "ד\"ר גיא לוטקר",
+    "score": 2.0,
+    "flagged_words": [],
+    "full_text": "רופא בסדר. רצון טוב.  נעים.  היה הרבה במילואים וזה ניכר גם בידע וגם בהתנהלות ",
+    "date": "2026-05-26",
+    "evaluator": "פרופ' עידית מטות"
+  },
+  {
     "name": "ד\"ר איתן קרויזר",
-    "score": 4.0,
+    "score": 3.0,
     "flagged_words": [
       "יותר"
     ],
@@ -149,7 +157,7 @@
   },
   {
     "name": "ד\"ר סמואל סילוב",
-    "score": 4.0,
+    "score": 5.0,
     "flagged_words": [
       "עדיין"
     ],
@@ -159,7 +167,7 @@
   },
   {
     "name": "ד\"ר אור שנצר",
-    "score": 4.0,
+    "score": 3.0,
     "flagged_words": [
       "יותר"
     ],
