@@ -9,8 +9,17 @@ function App() {
 
   const processData = (data) => {
     const flagged = []
+    const cutoffDate = new Date('2026-05-01T00:00:00')
     
     data.forEach(row => {
+      // Check the date first
+      if (row['Timestamp']) {
+        const rowDate = new Date(row['Timestamp'])
+        if (rowDate < cutoffDate) {
+          return // Skip this row if it's before May 1st, 2026
+        }
+      }
+
       // Find the key that corresponds to 'ידע תיאורטי' (Theoretical Knowledge)
       // We trim keys because sometimes excel headers have trailing spaces e.g. 'ידע תיאורטי '
       const targetKey = Object.keys(row).find(k => k.trim() === 'ידע תיאורטי')
@@ -44,7 +53,7 @@ function App() {
       const wb = XLSX.read(bstr, { type: 'binary' })
       const wsname = wb.SheetNames[0]
       const ws = wb.Sheets[wsname]
-      const data = XLSX.utils.sheet_to_json(ws)
+      const data = XLSX.utils.sheet_to_json(ws, { cellDates: true })
       processData(data)
     }
     reader.readAsBinaryString(file)
@@ -66,6 +75,7 @@ function App() {
       <header className="header">
         <h1>Resident Evaluation Dashboard</h1>
         <p>Upload your evaluation responses to immediately flag scores of 2 or below in Theoretical Knowledge.</p>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Only showing evaluations from May 1st, 2026 onwards.</p>
       </header>
 
       <div 
@@ -95,7 +105,7 @@ function App() {
           
           {flaggedResidents.length === 0 ? (
             <div className="no-flags">
-              <p>Great news! No residents scored 2 or below in Theoretical Knowledge.</p>
+              <p>Great news! No residents scored 2 or below in Theoretical Knowledge (since May 1st, 2026).</p>
             </div>
           ) : (
             <ul className="resident-list">
