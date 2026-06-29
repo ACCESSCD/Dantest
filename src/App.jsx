@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import * as XLSX from 'xlsx'
-import { UploadCloud, AlertCircle, FileSpreadsheet, RefreshCw } from 'lucide-react'
+import { UploadCloud, AlertCircle, FileSpreadsheet, RefreshCw, MessageSquareWarning } from 'lucide-react'
 import './index.css'
 
 function App() {
@@ -16,7 +16,6 @@ function App() {
         return res.json();
       })
       .then(data => {
-        // The python script already processed the data!
         setFlaggedResidents(data);
         setIsLoading(false);
       })
@@ -26,10 +25,10 @@ function App() {
       });
   }, []);
 
-  // Manual fallback logic
   const processData = (data) => {
     const flagged = []
     const cutoffDate = new Date('2026-05-01T00:00:00')
+    const negativeWords = ['ידע', 'עדיין', 'ללמוד', 'צריך', 'יותר']
     
     data.forEach(row => {
       const tsKey = Object.keys(row).find(k => k.trim().toLowerCase() === 'timestamp' || k.trim() === 'חותמת זמן')
@@ -50,33 +49,47 @@ function App() {
         }
       }
 
-      if (!isValidDateAndRecent) {
-        return; 
+      if (!isValidDateAndRecent) return; 
+
+      const targetKey = Object.keys(row).find(k => k.trim() === 'מיומנות מנואלית')
+      const textKey = Object.keys(row).find(k => k.trim() === 'הערכה מילולית')
+      
+      const score = targetKey ? row[targetKey] : null
+      const textVal = textKey && row[textKey] ? String(row[textKey]) : ''
+      
+      // Find words ignoring punctuation
+      const cleanText = textVal.replace(/[^\w\sא-ת]/g, '')
+      const wordsInText = cleanText.split(/\s+/)
+      const foundWords = negativeWords.filter(w => wordsInText.includes(w))
+      
+      let isFlagged = false;
+      
+      if (score !== undefined && score !== null && !isNaN(score) && Number(score) <= 2) {
+        isFlagged = true;
+      }
+      if (foundWords.length > 0) {
+        isFlagged = true;
       }
 
-      // Find the key that corresponds to 'מיומנות מנואלית' (Manual Skills)
-      const targetKey = Object.keys(row).find(k => k.trim() === 'מיומנות מנואלית')
-      if (targetKey) {
-        const score = row[targetKey]
-        // Check if score is a valid number and <= 2
-        if (score !== undefined && score !== null && !isNaN(score) && Number(score) <= 2) {
-          let displayDate = 'Unknown Date';
-          if (tsKey && row[tsKey]) {
-            const rawDate = new Date(row[tsKey]);
-            if (!isNaN(rawDate.getTime())) {
-              displayDate = rawDate.toLocaleDateString();
-            } else if (typeof row[tsKey] === 'string') {
-              displayDate = row[tsKey].split(' ')[0];
-            }
+      if (isFlagged) {
+        let displayDate = 'Unknown Date';
+        if (tsKey && row[tsKey]) {
+          const rawDate = new Date(row[tsKey]);
+          if (!isNaN(rawDate.getTime())) {
+            displayDate = rawDate.toLocaleDateString();
+          } else if (typeof row[tsKey] === 'string') {
+            displayDate = row[tsKey].split(' ')[0];
           }
-
-          flagged.push({
-            name: row['שם המתמחה'] || 'Unknown',
-            score: Number(score),
-            date: displayDate,
-            evaluator: row['שם המעריך'] || 'Unknown'
-          })
         }
+
+        flagged.push({
+          name: row['שם המתמחה'] || 'Unknown',
+          score: score !== null && !isNaN(score) ? Number(score) : 'N/A',
+          flagged_words: foundWords,
+          full_text: textVal,
+          date: displayDate,
+          evaluator: row['שם המעריך'] || 'Unknown'
+        })
       }
     })
     
@@ -124,11 +137,10 @@ function App() {
     <div className="dashboard-container">
       <header className="header">
         <h1>Resident Evaluation Dashboard</h1>
-        <p>Your dashboard automatically flags scores of 2 or below in Manual Skills.</p>
+        <p>Flags residents with Manual Skills ≤ 2 OR concerning keywords in verbal evaluation.</p>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Strictly showing evaluations from May 1st, 2026 onwards.</p>
       </header>
 
-      {/* Only show upload card if automated data failed or wasn't found */}
       {!flaggedResidents && (
         <div 
           className="upload-card"
@@ -158,22 +170,56 @@ function App() {
           
           {flaggedResidents.length === 0 ? (
             <div className="no-flags">
-              <p>Great news! No residents scored 2 or below in Manual Skills (since May 1st, 2026).</p>
+              <p>Great news! No residents met the flagging criteria (since May 1st, 2026).</p>
             </div>
           ) : (
-            <ul className="resident-list">
-              {flaggedResidents.map((resident, index) => (
-                <li key={index} className="resident-item">
-                  <div className="resident-info">
-                    <h3>{resident.name}</h3>
-                    <p className="meta-info">Evaluated on {resident.date} by {resident.evaluator}</p>
-                  </div>
-                  <div className="score-badge">
-                    {resident.score}
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div className="table-responsive">
+              <table className="resident-table">
+                <thead>
+                  <tr>
+                    <th>Resident</th>
+                    <th>Manual Skills Score</th>
+                    <th>Flagged Keywords</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {flaggedResidents.map((resident, index) => (
+                    <tr key={index}>
+                      <td>
+                        <div className="resident-info">
+                          <h3>{resident.name}</h3>
+                          <p className="meta-info">{resident.date} by {resident.evaluator}</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className={`score-badge ${resident.score <= 2 ? 'is-flagged' : 'is-ok'}`}>
+                          {resident.score}
+                        </div>
+                      </td>
+                      <td>
+                        {resident.flagged_words && resident.flagged_words.length > 0 ? (
+                          <div className="keywords-cell">
+                            <MessageSquareWarning size={18} className="warning-icon" />
+                            <div className="keywords-list">
+                              {resident.flagged_words.map((w, i) => (
+                                <span key={i} className="keyword-tag">{w}</span>
+                              ))}
+                            </div>
+                            {resident.full_text && (
+                                <p className="full-text-preview" title={resident.full_text}>
+                                  "{resident.full_text.length > 50 ? resident.full_text.substring(0, 50) + '...' : resident.full_text}"
+                                </p>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted">None</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
