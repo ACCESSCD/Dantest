@@ -12,16 +12,42 @@ function App() {
     const cutoffDate = new Date('2026-05-01T00:00:00')
     
     data.forEach(row => {
-      // Check the date first
-      if (row['Timestamp']) {
-        const rowDate = new Date(row['Timestamp'])
-        if (rowDate < cutoffDate) {
-          return // Skip this row if it's before May 1st, 2026
+      // Find the timestamp key (could be 'Timestamp' or 'חותמת זמן' depending on form language)
+      const tsKey = Object.keys(row).find(k => 
+        k.trim().toLowerCase() === 'timestamp' || 
+        k.trim() === 'חותמת זמן'
+      )
+      
+      let isValidDateAndRecent = false;
+      
+      if (tsKey && row[tsKey]) {
+        let rowDate = new Date(row[tsKey]);
+        
+        // If JS fails to parse the string (e.g. DD/MM/YYYY format), try a manual fallback
+        if (isNaN(rowDate.getTime()) && typeof row[tsKey] === 'string') {
+          // split by slash, dash, or space
+          const parts = row[tsKey].split(/[\/\-\s]/); 
+          if (parts.length >= 3) {
+            // Assume DD/MM/YYYY or similar if invalid. Let's try to reconstruct YYYY-MM-DD
+            // If parts[2] is a year (length 4)
+            if (parts[2].length === 4) {
+              rowDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`);
+            }
+          }
+        }
+        
+        // If it's a valid date, check if it's strictly >= May 1st 2026
+        if (!isNaN(rowDate.getTime()) && rowDate >= cutoffDate) {
+          isValidDateAndRecent = true;
         }
       }
 
+      // If we couldn't find a valid date, or if it's before the cutoff, skip this row entirely!
+      if (!isValidDateAndRecent) {
+        return; 
+      }
+
       // Find the key that corresponds to 'ידע תיאורטי' (Theoretical Knowledge)
-      // We trim keys because sometimes excel headers have trailing spaces e.g. 'ידע תיאורטי '
       const targetKey = Object.keys(row).find(k => k.trim() === 'ידע תיאורטי')
       
       if (targetKey) {
@@ -29,10 +55,22 @@ function App() {
         
         // Check if score is a valid number and <= 3
         if (score !== undefined && score !== null && !isNaN(score) && Number(score) <= 3) {
+          
+          // Format the date for display
+          let displayDate = 'Unknown Date';
+          if (tsKey && row[tsKey]) {
+            const rawDate = new Date(row[tsKey]);
+            if (!isNaN(rawDate.getTime())) {
+              displayDate = rawDate.toLocaleDateString();
+            } else if (typeof row[tsKey] === 'string') {
+              displayDate = row[tsKey].split(' ')[0]; // fallback to just the string part
+            }
+          }
+
           flagged.push({
             name: row['שם המתמחה'] || 'Unknown',
             score: Number(score),
-            date: row['Timestamp'] ? new Date(row['Timestamp']).toLocaleDateString() : 'Unknown Date',
+            date: displayDate,
             evaluator: row['שם המעריך'] || 'Unknown'
           })
         }
@@ -75,7 +113,7 @@ function App() {
       <header className="header">
         <h1>Resident Evaluation Dashboard</h1>
         <p>Upload your evaluation responses to immediately flag scores of 3 or below in Theoretical Knowledge.</p>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Only showing evaluations from May 1st, 2026 onwards.</p>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Strictly showing evaluations from May 1st, 2026 onwards.</p>
       </header>
 
       <div 
